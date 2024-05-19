@@ -1,0 +1,18 @@
+meta {
+  name: SignIn
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/auth/signin
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "login": "95.694.925/0001-96",
+    "password":"Oliveira1462#"
+  }
+}
