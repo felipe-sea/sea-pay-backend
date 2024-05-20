@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: 
+  url: {{baseUrl}}/auth/authenticated-user
   body: none
   auth: none
+}
+
+headers {
+  Authorization: {{jwtToken}}
 }
