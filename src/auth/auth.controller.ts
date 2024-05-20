@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -33,6 +34,12 @@ export class AuthController {
   @Public()
   @Post('signin')
   signIn(@Res() res: Response, @Body(new ValidationPipe()) body: SignInDto) {
-    return this.authService.signIn(res, body);
+    return this.authService.handleSignIn(res, body);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('authenticated-user')
+  getAuthenticatedUser(@Req() req: Request, @Res() res: Response) {
+    return this.authService.handleGetAuthenticatedUser(req, res);
   }
 }

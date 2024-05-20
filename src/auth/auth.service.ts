@@ -1,10 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { SignUpDto } from './dto/signup.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto/signin.dto';
+import { jwtConstants } from './constants';
 import * as bcrypt from 'bcrypt';
+
+type JwtPayloadType = {
+  userRegistration: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -40,10 +45,12 @@ export class AuthService {
       },
     });
 
-    return res.send(newUser);
+    delete newUser.password;
+
+    return res.status(201).send(newUser);
   }
 
-  async signIn(res: Response, body: SignInDto) {
+  async handleSignIn(res: Response, body: SignInDto) {
     const userByRegistration = await this.prismaService.tb_users.findUnique({
       where: {
         registration: body.login,
@@ -78,5 +85,54 @@ export class AuthService {
     );
 
     return res.send();
+  }
+
+  async handleGetAuthenticatedUser(req: Request, res: Response) {
+    const token = this.handleExtractTokenFromHeader(req);
+    const payload = await this.handleRecoveryTokenData(token);
+
+    if (!payload) {
+      throw new UnauthorizedException();
+    }
+
+    const { userRegistration } = payload;
+
+    const user = await this.prismaService.tb_users.findUnique({
+      where: {
+        registration: userRegistration,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        registration: true,
+        account_type: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(400).send({
+        message: 'User not found',
+      });
+    }
+
+    return res.send(user);
+  }
+
+  handleExtractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
+
+  async handleRecoveryTokenData(token: string): Promise<JwtPayloadType | null> {
+    try {
+      const payload: JwtPayloadType = await this.jwtService.verifyAsync(token, {
+        secret: jwtConstants.secret,
+      });
+
+      return payload;
+    } catch (error) {
+      return null;
+    }
   }
 }
