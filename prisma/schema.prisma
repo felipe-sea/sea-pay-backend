@@ -8,10 +8,47 @@ datasource db {
 }
 
 model tb_users {
-  id           Int    @id(map: "tb_users_pk") @default(autoincrement())
-  email        String @db.VarChar(255)
-  password     String @db.VarChar
-  account_type String @db.VarChar(20)
-  name         String @db.VarChar(255)
-  registration String @unique() @db.VarChar(18)
+  id                                           Int               @id(map: "tb_users_pk") @default(autoincrement())
+  email                                        String            @db.VarChar(255)
+  password                                     String            @db.VarChar
+  account_type                                 String            @db.VarChar(20)
+  name                                         String            @db.VarChar(255)
+  registration                                 String            @unique @db.VarChar(18)
+  account                                      tb_accounts?
+  tb_contacts_tb_contacts_user_idTotb_users    tb_contacts[]     @relation("tb_contacts_user_idTotb_users")
+  tb_contacts_tb_contacts_contact_idTotb_users tb_contacts[]     @relation("tb_contacts_contact_idTotb_users")
+  tb_transactions                              tb_transactions[]
+}
+
+model tb_accounts {
+  id              Int               @id(map: "tb_accounts_pk") @default(autoincrement())
+  amount          Float             @default(0.00)
+  key             String            @unique @db.VarChar(24)
+  account_number  String?           @unique @db.VarChar(4)
+  user_id         Int               @unique
+  user            tb_users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  tb_transactions tb_transactions[]
+
+  @@index([user_id])
+}
+
+model tb_transactions {
+  id                     Int         @id(map: "tb_payments_pk") @default(autoincrement())
+  value                  Float       @default(0.00)
+  status                 String      @db.VarChar(20)
+  transaction_date       DateTime    @db.Timestamp(6)
+  origin_account_id      Int
+  origin_user_id         Int
+  destination_account_id Int
+  destination_user_id    Int
+  tb_accounts            tb_accounts @relation(fields: [origin_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_transactions_tb_accounts_fk")
+  tb_users               tb_users    @relation(fields: [origin_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_transactions_tb_users_fk")
+}
+
+model tb_contacts {
+  id                                        Int      @id(map: "tb_contacts_pk") @default(autoincrement())
+  user_id                                   Int
+  contact_id                                Int
+  tb_users_tb_contacts_user_idTotb_users    tb_users @relation("tb_contacts_user_idTotb_users", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk")
+  tb_users_tb_contacts_contact_idTotb_users tb_users @relation("tb_contacts_contact_idTotb_users", fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk_1")
 }

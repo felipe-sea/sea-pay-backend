@@ -1,0 +1,22 @@
+meta {
+  name: PaymentTransaction
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{jwtToken}}
+}
+
+body:json {
+  {
+    "value": 250.00,
+    "destination_user_id": 1
+  }
+}

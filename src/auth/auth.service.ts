@@ -5,6 +5,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto/signin.dto';
 import { jwtConstants } from './constants';
+import { KeyService } from 'src/key/key.service';
 import * as bcrypt from 'bcrypt';
 
 type JwtPayloadType = {
@@ -16,6 +17,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private prismaService: PrismaService,
+    private keyService: KeyService,
   ) {}
 
   async handleSignUp(res: Response, body: SignUpDto) {
@@ -35,6 +37,8 @@ export class AuthService {
     const { password } = body;
     const encryptedPassword = await bcrypt.hash(password, 10);
 
+    const accountKey = this.keyService.generateKey();
+
     const newUser = await this.prismaService.tb_users.create({
       data: {
         account_type: body.account_type,
@@ -42,10 +46,30 @@ export class AuthService {
         name: body.name,
         password: encryptedPassword,
         registration: body.registration,
+        account: {
+          create: {
+            amount: 1000.0,
+            key: accountKey,
+          },
+        },
+      },
+      include: {
+        account: true,
+      },
+    });
+
+    const updatedAccount = await this.prismaService.tb_accounts.update({
+      where: {
+        id: newUser.account.id,
+      },
+      data: {
+        ...newUser.account,
+        account_number: newUser.account.id.toString().padStart(4, '0'),
       },
     });
 
     delete newUser.password;
+    newUser.account = updatedAccount;
 
     return res.status(201).send(newUser);
   }
@@ -101,12 +125,8 @@ export class AuthService {
       where: {
         registration: userRegistration,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        registration: true,
-        account_type: true,
+      include: {
+        account: true,
       },
     });
 
@@ -115,6 +135,8 @@ export class AuthService {
         message: 'User not found',
       });
     }
+
+    delete user.password;
 
     return res.send(user);
   }

@@ -1,0 +1,15 @@
+meta {
+  name: GetMyAccountDetails
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/accounts/my-account
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{jwtToken}}
+}

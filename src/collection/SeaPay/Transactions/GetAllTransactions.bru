@@ -1,0 +1,22 @@
+meta {
+  name: GetAllTransactions
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/transactions?page=5&limit=5&sortBy=transaction_date&order=desc
+  body: none
+  auth: none
+}
+
+query {
+  page: 5
+  limit: 5
+  sortBy: transaction_date
+  order: desc
+}
+
+headers {
+  Authorization: {{jwtToken}}
+}

@@ -1,0 +1,21 @@
+meta {
+  name: AddMoneyToMyAccount
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/accounts/add-money-to-my-account
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{jwtToken}}
+}
+
+body:json {
+  {
+    "amount": 10.00
+  }
+}
