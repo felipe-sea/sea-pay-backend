@@ -111,6 +111,34 @@ export class AuthService {
     return res.send();
   }
 
+  async handleRefreshToken(req: Request, res: Response) {
+    try {
+      const authenticatedUser = await this.getAuthenticatedUser(req);
+
+      if (!authenticatedUser) {
+        return res.status(401).send({
+          message: 'Unauthorized',
+        });
+      }
+
+      delete authenticatedUser.password;
+
+      const sub = authenticatedUser.id;
+
+      const payload = { sub, userRegistration: authenticatedUser.registration };
+      res.setHeader(
+        'Authorization',
+        `Bearer ${await this.jwtService.signAsync(payload)}`,
+      );
+
+      return res.send();
+    } catch (error) {
+      return res.status(401).send({
+        error,
+      });
+    }
+  }
+
   async handleGetAuthenticatedUser(req: Request, res: Response) {
     const authenticatedUser = await this.getAuthenticatedUser(req);
 

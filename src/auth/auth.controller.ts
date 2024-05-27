@@ -23,7 +23,6 @@ export class AuthController {
   @Public()
   @Post('signup')
   async signUp(
-    @Req() req: Request,
     @Res() res: Response,
     @Body(new ValidationPipe()) body: SignUpDto,
   ) {
@@ -41,5 +40,12 @@ export class AuthController {
   @Get('authenticated-user')
   getAuthenticatedUser(@Req() req: Request, @Res() res: Response) {
     return this.authService.handleGetAuthenticatedUser(req, res);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('refresh-token')
+  refreshToken(@Req() req: Request, @Res() res: Response) {
+    return this.authService.handleRefreshToken(req, res);
   }
 }
