@@ -112,8 +112,22 @@ export class AuthService {
   }
 
   async handleGetAuthenticatedUser(req: Request, res: Response) {
-    const token = this.handleExtractTokenFromHeader(req);
-    const payload = await this.handleRecoveryTokenData(token);
+    const authenticatedUser = await this.getAuthenticatedUser(req);
+
+    if (!authenticatedUser) {
+      return res.status(401).send({
+        message: 'Unauthorized',
+      });
+    }
+
+    delete authenticatedUser.password;
+
+    return res.send(authenticatedUser);
+  }
+
+  async getAuthenticatedUser(req: Request) {
+    const token = this.extractTokenFromHeader(req);
+    const payload = await this.recoveryTokenData(token);
 
     if (!payload) {
       throw new UnauthorizedException();
@@ -131,22 +145,18 @@ export class AuthService {
     });
 
     if (!user) {
-      return res.status(400).send({
-        message: 'User not found',
-      });
+      return null;
     }
 
-    delete user.password;
-
-    return res.send(user);
+    return user;
   }
 
-  handleExtractTokenFromHeader(request: Request): string | undefined {
+  extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
 
-  async handleRecoveryTokenData(token: string): Promise<JwtPayloadType | null> {
+  async recoveryTokenData(token: string): Promise<JwtPayloadType | null> {
     try {
       const payload: JwtPayloadType = await this.jwtService.verifyAsync(token, {
         secret: jwtConstants.secret,

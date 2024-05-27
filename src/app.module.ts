@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AccountModule } from './accounts/account.module';
 import { KeyModule } from './key/key.module';
 import { TransactionModule } from './transactions/account.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TransactionModule } from './transactions/account.module';
     AccountModule,
     KeyModule,
     TransactionModule,
+    ContactsModule,
   ],
   exports: [],
   controllers: [AppController],

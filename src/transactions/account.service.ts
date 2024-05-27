@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -18,6 +18,15 @@ export class TransactionService {
     body: PaymentTransactionDto,
   ) {
     try {
+      const authenticatedUser =
+        await this.authService.getAuthenticatedUser(req);
+
+      if (!authenticatedUser) {
+        return res.status(401).send({
+          message: 'Unauthorized',
+        });
+      }
+
       const { destination_user_id, value } = body;
 
       const destinationUser = await this.prismaService.tb_users.findUnique({
@@ -35,43 +44,19 @@ export class TransactionService {
         });
       }
 
-      const token = this.authService.handleExtractTokenFromHeader(req);
-      const payload = await this.authService.handleRecoveryTokenData(token);
-
-      if (!payload) {
-        throw new UnauthorizedException();
-      }
-
-      const { userRegistration } = payload;
-
-      const originUser = await this.prismaService.tb_users.findUnique({
-        where: {
-          registration: userRegistration,
-        },
-        include: {
-          account: true,
-        },
-      });
-
-      if (!originUser) {
-        return res.status(400).send({
-          message: 'User not found',
-        });
-      }
-
-      if (originUser.id === destinationUser.id) {
+      if (authenticatedUser.id === destinationUser.id) {
         return res.status(400).send({
           message: 'You can not send money to yourself',
         });
       }
 
-      if (originUser.account_type === AccountTypeEnum.shopkeeper) {
+      if (authenticatedUser.account_type === AccountTypeEnum.shopkeeper) {
         return res.status(400).send({
           message: 'You can not send money as a shopkeeper',
         });
       }
 
-      if (originUser.account.amount < value) {
+      if (authenticatedUser.account.amount < value) {
         return res.status(500).send({
           message: 'Insufficient funds',
         });
@@ -81,13 +66,13 @@ export class TransactionService {
 
       const transaction = await this.prismaService.tb_transactions.create({
         data: {
-          origin_user_id: originUser.id,
+          origin_user_id: authenticatedUser.id,
           destination_user_id: destinationUser.id,
           value,
           destination_account_id: destinationUser.account.id,
           status: transactionStatus,
           transaction_date: new Date(),
-          origin_account_id: originUser.account.id,
+          origin_account_id: authenticatedUser.account.id,
         },
       });
 
@@ -99,10 +84,10 @@ export class TransactionService {
 
       await this.prismaService.tb_accounts.update({
         where: {
-          id: originUser.account.id,
+          id: authenticatedUser.account.id,
         },
         data: {
-          amount: originUser.account.amount - value,
+          amount: authenticatedUser.account.amount - value,
         },
       });
 
@@ -128,27 +113,12 @@ export class TransactionService {
 
   async handleGetAllTransactions(req: Request, res: Response) {
     try {
-      const token = this.authService.handleExtractTokenFromHeader(req);
-      const payload = await this.authService.handleRecoveryTokenData(token);
+      const authenticatedUser =
+        await this.authService.getAuthenticatedUser(req);
 
-      if (!payload) {
-        throw new UnauthorizedException();
-      }
-
-      const { userRegistration } = payload;
-
-      const user = await this.prismaService.tb_users.findUnique({
-        where: {
-          registration: userRegistration,
-        },
-        include: {
-          account: true,
-        },
-      });
-
-      if (!user) {
-        return res.status(400).send({
-          message: 'User not found',
+      if (!authenticatedUser) {
+        return res.status(401).send({
+          message: 'Unauthorized',
         });
       }
 
@@ -173,10 +143,10 @@ export class TransactionService {
           where: {
             OR: [
               {
-                origin_user_id: user.id,
+                origin_user_id: authenticatedUser.id,
               },
               {
-                destination_user_id: user.id,
+                destination_user_id: authenticatedUser.id,
               },
             ],
           },

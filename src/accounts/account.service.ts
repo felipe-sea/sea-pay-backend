@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,31 +12,15 @@ export class AccountService {
     private authService: AuthService,
   ) {}
   async handleGetMyAccount(req: Request, res: Response) {
-    const token = this.authService.handleExtractTokenFromHeader(req);
-    const payload = await this.authService.handleRecoveryTokenData(token);
+    const authenticatedUser = await this.authService.getAuthenticatedUser(req);
 
-    if (!payload) {
-      throw new UnauthorizedException();
-    }
-
-    const { userRegistration } = payload;
-
-    const user = await this.prismaService.tb_users.findUnique({
-      where: {
-        registration: userRegistration,
-      },
-      include: {
-        account: true,
-      },
-    });
-
-    if (!user) {
-      return res.status(400).send({
-        message: 'User not found',
+    if (!authenticatedUser) {
+      return res.status(401).send({
+        message: 'Unauthorized',
       });
     }
 
-    const account = user.account;
+    const account = authenticatedUser.account;
 
     return res.send(account);
   }
@@ -46,33 +30,17 @@ export class AccountService {
     res: Response,
     body: AddMoneyToMyAccount,
   ) {
-    if (body.amount <= 0) {
-      return res.status(400).send({
-        message: 'Amount must be greater than 0',
+    const authenticatedUser = await this.authService.getAuthenticatedUser(req);
+
+    if (!authenticatedUser) {
+      return res.status(401).send({
+        message: 'Unauthorized',
       });
     }
 
-    const token = this.authService.handleExtractTokenFromHeader(req);
-    const payload = await this.authService.handleRecoveryTokenData(token);
-
-    if (!payload) {
-      throw new UnauthorizedException();
-    }
-
-    const { userRegistration } = payload;
-
-    const user = await this.prismaService.tb_users.findUnique({
-      where: {
-        registration: userRegistration,
-      },
-      include: {
-        account: true,
-      },
-    });
-
-    if (!user) {
+    if (body.amount <= 0) {
       return res.status(400).send({
-        message: 'User not found',
+        message: 'Amount must be greater than 0',
       });
     }
 
@@ -80,10 +48,10 @@ export class AccountService {
 
     const accountUpdated = await this.prismaService.tb_accounts.update({
       where: {
-        id: user.account.id,
+        id: authenticatedUser.account.id,
       },
       data: {
-        amount: user.account.amount + amountRounded,
+        amount: authenticatedUser.account.amount + amountRounded,
       },
     });
 
