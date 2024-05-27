@@ -46,9 +46,9 @@ model tb_transactions {
 }
 
 model tb_contacts {
-  id                                        Int      @id(map: "tb_contacts_pk") @default(autoincrement())
-  user_id                                   Int
-  contact_id                                Int
-  tb_users_tb_contacts_user_idTotb_users    tb_users @relation("tb_contacts_user_idTotb_users", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk")
-  tb_users_tb_contacts_contact_idTotb_users tb_users @relation("tb_contacts_contact_idTotb_users", fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk_1")
+  id           Int      @id(map: "tb_contacts_pk") @default(autoincrement())
+  user_id      Int
+  contact_id   Int
+  user         tb_users @relation("tb_contacts_user_idTotb_users", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk")
+  contact_user tb_users @relation("tb_contacts_contact_idTotb_users", fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tb_contacts_tb_users_fk_1")
 }
