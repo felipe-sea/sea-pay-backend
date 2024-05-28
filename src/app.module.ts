@@ -8,9 +8,17 @@ import { AccountModule } from './accounts/account.module';
 import { KeyModule } from './key/key.module';
 import { TransactionModule } from './transactions/account.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './auth/constants';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '15m' },
+    }),
     AuthModule,
     UsersModule,
     AuthModule,
@@ -22,6 +30,12 @@ import { ContactsModule } from './contacts/contacts.module';
   ],
   exports: [],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      useClass: AuthGuard,
+      provide: 'APP_GUARD',
+    },
+  ],
 })
 export class AppModule {}

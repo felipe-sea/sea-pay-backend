@@ -27,7 +27,17 @@ export class ContactsService {
           user_id: authenticatedUser.id,
         },
         include: {
-          contact_user: true,
+          contact_user: {
+            select: {
+              id: true,
+              name: true,
+              account: {
+                select: {
+                  key: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -69,6 +79,18 @@ export class ContactsService {
       if (contactAlreadyExists) {
         return res.status(400).send({
           message: 'Contact already vinculated',
+        });
+      }
+
+      const userExists = await this.prismaService.tb_users.findUnique({
+        where: {
+          id: user_id,
+        },
+      });
+
+      if (!userExists) {
+        return res.status(400).send({
+          message: 'User not found',
         });
       }
 

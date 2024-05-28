@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/transactions?page=5&limit=5&sortBy=transaction_date&order=desc
+  url: {{baseUrl}}/transactions?page=1&limit=5&sortBy=transaction_date&order=desc
   body: none
   auth: none
 }
 
 query {
-  page: 5
+  page: 1
   limit: 5
   sortBy: transaction_date
   order: desc

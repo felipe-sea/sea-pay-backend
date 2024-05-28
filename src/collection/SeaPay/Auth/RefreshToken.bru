@@ -1,0 +1,19 @@
+meta {
+  name: RefreshToken
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh-token
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{jwtToken}}
+}
+
+vars:post-response {
+  jwtToken: res.headers.authorization
+}
