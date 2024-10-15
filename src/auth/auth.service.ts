@@ -6,7 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto/signin.dto';
 import { jwtConstants } from './constants';
 import { KeyService } from 'src/key/key.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 type JwtPayloadType = {
   userRegistration: string;
