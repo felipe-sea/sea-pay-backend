@@ -17,13 +17,19 @@ Esta API foi construída como objeto de estudo para uma aplicação educacional 
 - Bruno - Bruno é um API client opensource que utilizamos em alguns de nossos projetos, principalmente por conta da possibilidade de versionarmos as collections dentro do próprio código.
 - npm - tenha o npm em sua versão mais atualizada.
 
-### Iniciando a aplicação
+### Utilizando o Bruno
 
-A aplicação está dockerizada, então basta executar o comando abaixo e tudo estará funcionando perfeitamente. Mas caso queira entender ou executar o passo-a-passo para rodar o projeto, ele está detalhado logo em seguida.
+Antes de fazer qualquer requisição pelo Bruno, você precisa selecionar o environment "Development".
+
+### Iniciando a aplicação pelo Docker
+
+A aplicação está dockerizada, então basta executar o comando abaixo e tudo estará funcionando perfeitamente.
 
 ```
 docker-compose up -d
 ```
+
+### Iniciando a aplicação pelo terminal
 
 #### Instalando as dependências
 
